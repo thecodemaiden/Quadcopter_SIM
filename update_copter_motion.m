@@ -16,7 +16,7 @@ x = motion.pos;
     x=x+dt*new_motion.xdot;
     
    new_motion.pos = x;
-   new_motion.angvel = omegadot';
+   new_motion.angacc = omegadot';
    new_motion.theta = theta;
 
 end

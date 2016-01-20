@@ -1,23 +1,23 @@
-function [ copter ] = make_copter()
-%MAKE_COPTER Create a numerical quadcopter model
-% graph_type should be "2d", "3d", or "none" (default)
+function [ copter, motion ] = make_copter()
+% [C, M] = MAKE_COPTER Create a numerical quadcopter model
+% C contains unchaning physical constants, while M contains motion
+% parameters
 
-copter = struct;
+copter.m = 0.27; % mass in grams
+copter.k = 1e-4; % thrust to ang. velocity proportionality constant
+copter.kd = 0.25; % friction constant
+copter.I = diag([5e-3, 5e-3, 10e-3]); % inertial moment
+copter.L = 0.0485; % length of arms
+copter.b= 1e-7; % drag coefficient
 
-% Simulate some disturbance in the angular velocity.
+% variables needed to track motion
 
-% The magnitude of the deviation is in radians / second.
-
-%deviation = 20; thetadot = deg2rad(2 * deviation * rand(3, 1) - deviation);
-
-
-copter.m = 0.27;
-copter.k = 1e-4;
-copter.kd = 0.25;
-copter.I = diag([5e-3, 5e-3, 10e-3]);
-copter.L = 0.0485;
-copter.b= 1e-7;
-
-% make a graphical model
+motion.pos = [0; 0; 0]; % x-y-z potions
+motion.angacc = [0; 0; 0]; % angular acceleration about each axis
+motion.thetadot = [0;0;0]; % angular velocity
+motion.theta = [0; 0; 0]; % orientation/pose
+motion.thrust = [1 1 1 1]; % thrust on each motor as fraction of hover velocity
+motion.g  = 9.81; % acceleration due to gravity
+motion.xdot = [0; 0; 0]; % linear velocity
 
 end
