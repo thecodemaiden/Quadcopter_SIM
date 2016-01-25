@@ -5,25 +5,26 @@ function [h, thrusts] = make_quadcopter_3d
 % These will be transformed during the animation to display
 % relative thrust forces.
     % Draw arms.
-    h(1) = prism(-5, -0.25, -0.25, 10, 0.5, 0.5);
-    h(2) = prism(-0.25, -5, -0.25, 0.5, 10, 0.5);
+    L = 1;
+    h(1) = prism(0, 0, 0, L, 0.25, 0.25);
+    h(2) = prism(0, 0, 0, 0.25, L, 0.25);
 
     % Draw bulbs representing propellers at the end of each arm.
     [x, y, z] = sphere;
-    x = 0.5 * x;
-    y = 0.5 * y;
-    z = 0.5 * z;
-    h(3) = surf(x - 5, y, z, 'EdgeColor', 'none', 'FaceColor', 'b');
-    h(4) = surf(x + 5, y, z, 'EdgeColor', 'none', 'FaceColor', 'b');
-    h(5) = surf(x, y - 5, z, 'EdgeColor', 'none', 'FaceColor', 'b');
-    h(6) = surf(x, y + 5, z, 'EdgeColor', 'none', 'FaceColor', 'b');
+    x = 0.05 * x;
+    y = 0.05 * y;
+    z = 0.05 * z;
+    h(3) = surf(x - L/2, y, z, 'EdgeColor', 'none', 'FaceColor', 'b');
+    h(4) = surf(x + L/2, y, z, 'EdgeColor', 'none', 'FaceColor', 'b');
+    h(5) = surf(x, y - L/2, z, 'EdgeColor', 'none', 'FaceColor', 'b');
+    h(6) = surf(x, y + L/2, z, 'EdgeColor', 'none', 'FaceColor', 'b');
 
     % Draw thrust cylinders.
-    [x, y, z] = cylinder(0.1, 7);
-    thrusts(1) = surf(x, y + 5, z, 'EdgeColor', 'none', 'FaceColor', 'm');
-    thrusts(2) = surf(x + 5, y, z, 'EdgeColor', 'none', 'FaceColor', 'y');
-    thrusts(3) = surf(x, y - 5, z, 'EdgeColor', 'none', 'FaceColor', 'm');
-    thrusts(4) = surf(x - 5, y, z, 'EdgeColor', 'none', 'FaceColor', 'y');
+    [x, y, z] = cylinder(0.1, 2*L);
+    thrusts(1) = surf(x, y + L/2, z, 'EdgeColor', 'none', 'FaceColor', 'm');
+    thrusts(2) = surf(x + L/2, y, z, 'EdgeColor', 'none', 'FaceColor', 'y');
+    thrusts(3) = surf(x, y - L/2, z, 'EdgeColor', 'none', 'FaceColor', 'm');
+    thrusts(4) = surf(x - L/2, y, z, 'EdgeColor', 'none', 'FaceColor', 'y');
 
     % Create handles for each of the thrust cylinders.
     for i = 1:4
@@ -59,12 +60,4 @@ function h = prism(x, y, z, w, l, h)
     t = hgtransform;
     set(h, 'Parent', t);
     h = t;
-end
-
-% Compute the points on the edge of a prism at
-% location (x, y, z) with width w, length l, and height h.
-function [X, Y, Z] = prism_faces(x, y, z, w, l, h)
-    X = [x x x x x+w x+w x+w x+w];
-    Y = [y y y+l y+l y y y+l y+l];
-    Z = [z z+h z z+h z z+h z z+h];
 end

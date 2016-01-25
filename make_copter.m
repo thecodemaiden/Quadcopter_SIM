@@ -8,7 +8,7 @@ copter.k = 1e-4; % thrust to ang. velocity proportionality constant
 copter.kd = 0.25; % friction constant
 copter.I = diag([5e-3, 5e-3, 10e-3]); % inertial moment
 copter.L = 0.0485; % length of arms
-copter.b= 1e-7; % drag coefficient
+copter.b = 1e-7; % drag coefficient
 
 % variables needed to track motion
 

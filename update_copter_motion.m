@@ -18,6 +18,7 @@ x = motion.pos;
    new_motion.pos = x;
    new_motion.angacc = omegadot';
    new_motion.theta = theta;
+   new_motion.thetadot = thetadot;
 
 end
 
