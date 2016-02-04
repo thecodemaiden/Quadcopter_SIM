@@ -4,7 +4,7 @@ x = motion.pos;
 theta = motion.theta;
 
 subplot(plots(1));
-    hold off;
+   % hold off;
             % Compute translation to correct linear position coordinates.
     move = makehgtform('translate', x);
     
@@ -18,24 +18,24 @@ subplot(plots(1));
         set(drawing.model,'Matrix', move * rotate);
         
         
-        scales = exp(thrustin / min(abs(thrustin)) + 5) - exp(6) +  1.5;
-        for i = 1:4
-            % Scale each cylinder. For negative scales, we need to flip the cylinder
-            % using a rotation, because makehgtform does not understand negative scaling.
-            s = scales(i);
-            if s < 0
-                scalez = makehgtform('yrotate', pi)  * makehgtform('scale', [1, 1, abs(s)]);
-            elseif s > 0
-                if s == Inf
-                    s = 1;
-                end
-                scalez = makehgtform('scale', [1, 1, s]);
-            end
-
-            % Scale the cylinder as appropriate, then move it to
-            % be at the same place as the quadcopter propeller.
-            set(drawing.thrusts(i), 'Matrix', move * rotate * scalez);
-        end
+%         scales = exp(thrustin / min(abs(thrustin)) + 5) - exp(6) +  1.5;
+%         for i = 1:4
+%             % Scale each cylinder. For negative scales, we need to flip the cylinder
+%             % using a rotation, because makehgtform does not understand negative scaling.
+%             s = scales(i);
+%             if s < 0
+%                 scalez = makehgtform('yrotate', pi)  * makehgtform('scale', [1, 1, abs(s)]);
+%             elseif s > 0
+%                 if s == Inf
+%                     s = 1;
+%                 end
+%                 scalez = makehgtform('scale', [1, 1, s]);
+%             end
+% 
+%             % Scale the cylinder as appropriate, then move it to
+%             % be at the same place as the quadcopter propeller.
+%             set(drawing.thrusts(i), 'Matrix', move * rotate * scalez);
+%         end
         drawnow;
 
 end

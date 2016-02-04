@@ -1,7 +1,7 @@
 
 function [data] = sim_copter(copter, motion, N, dt)
 % Simulation times, in seconds.
-step_time = 0.05;
+step_time = 0.1;
 
 if nargin < 4
     dt = 0.05;
@@ -19,33 +19,34 @@ clf(h);
 
 % Create the drawn quadcopter object. Returns a handle to
 % the quadcopter itself as well as the thrust-display cylinders.
-[q, thrusts] = make_quadcopter_3d;
-drawing.model = q;
-drawing.thrusts = thrusts;
- 
+drawing.model = make_quadcopter_3d; 
 
 % save simulation values
 data = struct;
 data.t = times';
 data.x = zeros(N, 3);
 data.angacc = zeros(N, 3);
+data.theta = zeros(N,3);
+data.v = zeros(N,3);
 
 do3d = true;
+
+test_room = make_room(0,0,0,20,20,6);
 
 if do3d
     plots = subplot(1,1,1);
     % Set axis scale and labels.
-    axis([-30 30 -20 20 -3 3]);
+    axis([-15 15 -15 15 -5 5]);
     grid on;
     zlabel('Height');
 else
     plots = [subplot(3,1,1) subplot(3,1,2), subplot(3,1,3)];
     subplot(plots(1));
-    axis([-30 30 -30 30]);
+    axis([-10 10 -10 10]);
     subplot(plots(2));
-    axis([-30 30 -3 3]);
+    axis([-10 10 -3 3]);
     subplot(plots(3));
-    axis([-30 30 -3 3]);
+    axis([-10 10 -3 3]);
 end
     title('Quadcopter Flight Simulation');
     
@@ -57,76 +58,57 @@ function stop_keypress(~,eventData)
     end
 end
 
-t_mult = (6620/32767); % crazyflie values are too big
+%r_params = [5.0, 3.0, 2.0]; 
+%p_params = r_params;
+%y_params = [10, 1, 0.35];
+%pid_params = vertcat(r_params, p_params, y_params);
+attitude_state = copter;
+attitude_state.g = motion.g;
+attitude_state.dt = dt;
+attitude_state.Kp = 10.0; attitude_state.Ki = 3.0; attitude_state.Kd=3.0;
+  
+motion.thrust = [1 1 1 1]*6622;
 
-%use PID values from the firmware
-pid_r = make_pid(3.5*t_mult, 2.0*t_mult, 0.0, 0, 20.0*t_mult);
-pid_p = make_pid(3.5*t_mult, 2.0*t_mult, 0.0, 0, 20.0*t_mult);
-pid_y = make_pid(10.0*t_mult, 1.0*t_mult, 0.35*t_mult, 0, 360*t_mult); 
+accum = 0.0;
+target_theta = [0;0.1;0];
 
-pid_r_rate = make_pid(70*t_mult,0,0,0,33.0*t_mult);
-pid_p_rate = make_pid(70*t_mult,0,0,0,33.0*t_mult);
-pid_y_rate = make_pid(70*t_mult, 16.7*t_mult, 0, 0, 500/3*t_mult);
-   
-t_mult = 1;
-base_thrust = [1 1 1 1];
+pitch_interval = 100;
 
 for t = 1:N,
-    % Take input from our controller.
+   % Take input from our controller.
     
-    data.x(t, 1:3) = motion.pos';
+   data.x(t, 1:3) = motion.pos';
    data.angacc(t, 1:3) = motion.angacc'; 
-   if do3d
-    display_copter_3d(motion, drawing, plots);
-   else
-    display_copter_2d(motion, plots);
+   data.theta(t, 1:3) = motion.theta';
+   data.v(t, 1:3) = motion.xdot';
+   if accum > step_time
+       if do3d
+           hold off;
+           display_copter_3d(motion, drawing, plots);
+           hold on;
+           draw_room_3d(test_room,h);
+       else
+           display_copter_2d(motion, plots);
+       end
+       accum = accum - step_time;
    end
-    motion = update_copter_motion(copter, motion, dt);
+   accum = accum + dt;
+   motion = update_copter_motion(copter, motion, dt);
+   if t < 100
+       chosen_target = target_theta;
+   else
+       chosen_target = [0;0;0];
+   end
+   
+   [thrust_adj, attitude_state] = pid_controller(attitude_state, motion, chosen_target);
     
-    %theta order seems to be pry, not rpy
-    %update PIDs as CFlie does - first get target rates given current pose
-    pid_r.current = motion.theta(2);
-    pid_r = update_pid(pid_r, dt);
-    pid_p.current = motion.theta(1);
-    pid_p = update_pid(pid_p, dt);
-    pid_y.current = motion.theta(3);
-    pid_y = update_pid(pid_y, dt);
-    
-    %then convert rates (output of PID) to actuator output
-    pid_r_rate.target = pid_r.output;
-    pid_p_rate.target = pid_p.output;
-    pid_y_rate.target = pid_y.output;
-    
-    pid_r_rate.current = motion.thetadot(2);
-    pid_p_rate.current = motion.thetadot(1);
-    pid_y_rate.current = motion.thetadot(3);
-    
-    pid_r_rate = update_pid(pid_r_rate, dt);
-    pid_p_rate = update_pid(pid_p_rate, dt);
-    pid_y_rate = update_pid(pid_y_rate,dt);
-    
-    disp(['DTheta: ', num2str(motion.thetadot')]);
-    disp(['theta: ', num2str(motion.theta')]);
-    % plus orientation... seems wrong...
-    r = pid_r_rate.output*t_mult;
-    p = pid_p_rate.output*t_mult;
-    y =  pid_y_rate.output*t_mult*(2*pi)/360;
-    
-    % + mode
-    thrust = base_thrust - [p + y, -r - y, -p + y, r - y]; 
-    
-    % xmode
-    %r = r/2;
-    %p = p/2;
-   % thrust =  base_thrust + [-r + p +y, -r - p - y, r - p + y, r + p + y];
-    
-    
-    limit_thrust = max(min(thrust,2), 0);
-    motion.thrust = limit_thrust;
-    disp(['Applying thrust:', num2str(limit_thrust)]);
-    disp(' ');
-    
-    pause(step_time);
+    %motion.thrust = limit_thrust;
+    %disp(['Applying thrust: ', num2str(thrust_adj)]);
+    %disp(['Rotation rate: ', num2str(motion.thetadot')]);
+    %disp(['Rotation: ', num2str(motion.theta')]);
+    %disp(' ');
+    pause(0.01);
+    motion.thrust = thrust_adj;
    if ~keepLooping
        break
    end
@@ -134,6 +116,9 @@ end
 %close(h);
 end
 
+%pid_r = make_pid(3.5*t_mult, 2.0*t_mult, 0.0, 0, 20.0*t_mult);
+%pid_p = make_pid(3.5*t_mult, 2.0*t_mult, 0.0, 0, 20.0*t_mult);
+%pid_y = make_pid(10.0*t_mult, 1.0*t_mult, 0.35*t_mult, 0, 360*t_mult); 
 function [r] = make_pid(kp, ki, kd, target, limit)
     r.kp = kp;
     r.ki = ki;

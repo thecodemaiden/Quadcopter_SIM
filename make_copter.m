@@ -19,5 +19,5 @@ motion.theta = [0; 0; 0]; % orientation/pose
 motion.thrust = [1 1 1 1]; % thrust on each motor as fraction of hover velocity
 motion.g  = 9.81; % acceleration due to gravity
 motion.xdot = [0; 0; 0]; % linear velocity
-
+motion.forces = [0; 0; 0]; % external applied force in newtons
 end

@@ -1,4 +1,4 @@
-function [h, thrusts] = make_quadcopter_3d
+function [h] = make_quadcopter_3d
 
 % Draw a quadcopter. Return a handle to the quadcopter object
 % and an array of handles to the thrust display cylinders. 
@@ -6,8 +6,8 @@ function [h, thrusts] = make_quadcopter_3d
 % relative thrust forces.
     % Draw arms.
     L = 1;
-    h(1) = prism(0, 0, 0, L, 0.25, 0.25);
-    h(2) = prism(0, 0, 0, 0.25, L, 0.25);
+    h(1) = prism(0, 0, 0, L, 0.1, 0.1);
+    h(2) = prism(0, 0, 0, 0.1, L, 0.1);
 
     % Draw bulbs representing propellers at the end of each arm.
     [x, y, z] = sphere;
@@ -18,20 +18,6 @@ function [h, thrusts] = make_quadcopter_3d
     h(4) = surf(x + L/2, y, z, 'EdgeColor', 'none', 'FaceColor', 'b');
     h(5) = surf(x, y - L/2, z, 'EdgeColor', 'none', 'FaceColor', 'b');
     h(6) = surf(x, y + L/2, z, 'EdgeColor', 'none', 'FaceColor', 'b');
-
-    % Draw thrust cylinders.
-    [x, y, z] = cylinder(0.1, 2*L);
-    thrusts(1) = surf(x, y + L/2, z, 'EdgeColor', 'none', 'FaceColor', 'm');
-    thrusts(2) = surf(x + L/2, y, z, 'EdgeColor', 'none', 'FaceColor', 'y');
-    thrusts(3) = surf(x, y - L/2, z, 'EdgeColor', 'none', 'FaceColor', 'm');
-    thrusts(4) = surf(x - L/2, y, z, 'EdgeColor', 'none', 'FaceColor', 'y');
-
-    % Create handles for each of the thrust cylinders.
-    for i = 1:4
-        x = hgtransform;
-        set(thrusts(i), 'Parent', x);
-        thrusts(i) = x;
-    end
 
     % Conjoin all quadcopter parts into one object.
     t = hgtransform;
