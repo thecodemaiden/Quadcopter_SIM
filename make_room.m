@@ -18,4 +18,5 @@ end
 theRoom.corners = corners;
 theRoom.edges = edges;
 theRoom.faces = faces;
+theRoom.center = [center_x center_y center_z];
 end

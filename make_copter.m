@@ -7,9 +7,9 @@ copter.m = 0.27; % mass in grams
 copter.k = 1e-4; % thrust to ang. velocity proportionality constant
 copter.kd = 0.25; % friction constant
 copter.I = diag([5e-3, 5e-3, 10e-3]); % inertial moment
-copter.L = 0.0485; % length of arms
+copter.L = 0.0485; % length of arms in meters
 copter.b = 1e-7; % drag coefficient
-
+copter.zr = 0.012; % z thickness of quadcopter
 % variables needed to track motion
 
 motion.pos = [0; 0; 0]; % x-y-z potions
@@ -20,4 +20,5 @@ motion.thrust = [1 1 1 1]; % thrust on each motor as fraction of hover velocity
 motion.g  = 9.81; % acceleration due to gravity
 motion.xdot = [0; 0; 0]; % linear velocity
 motion.forces = [0; 0; 0]; % external applied force in newtons
+motion.dt = 0.005; % time step
 end

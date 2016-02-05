@@ -1,9 +1,10 @@
-function [ new_motion ] = update_copter_motion( copter, motion, dt )
+function [ new_motion ] = update_copter_motion( copter, motion )
 
 new_motion = motion;
 theta = motion.theta;
 i = motion.thrust; % should be adjusted for the copters hover point
 x = motion.pos;
+dt = motion.dt;
 
    omega = thetadot2omega(motion.thetadot, theta);
    % Compute linear and angular accelerations.

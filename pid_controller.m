@@ -21,9 +21,9 @@ function [input, state] = pid_controller(state, motion, target_theta)
     % this will be PI-D controller
       
     now_error = theta-target_theta;
-      
+    d_error = (-state.lasterror + now_error)/state.dt;
     % Compute error and inputs.
-    err = Kd .* thetadot + Kp .* now_error + Ki .* state.integral;
+    err = Kd .* d_error + Kp .* theta + Ki .* state.integral;
     input = err2inputs(state, err, total);
 
     % Update controller state.
