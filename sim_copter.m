@@ -1,4 +1,3 @@
-
 function [data] = sim_copter(copter, motion, N, draw)
 
 dt = motion.dt;
@@ -20,7 +19,6 @@ end
 
 times = (1:N)*dt;
 
-
 % save simulation values
 data = struct;
 data.t = times';
@@ -37,8 +35,6 @@ if draw
     h = figure(10);
     set(h,'KeyPressFcn',@stop_keypress);
     clf(h);
-    
-    
     if do3d
         % Create the drawn quadcopter object. Returns a handle
         drawing.model = make_quadcopter_3d;
@@ -81,10 +77,10 @@ attitude_state.g = motion.g;
 attitude_state.dt = dt;
 attitude_state.Kp = 0; attitude_state.Ki = 5.0; attitude_state.Kd=10.0;
 
-motion.thrust = [1 1 1 1]*6622;
+motion.thrust = motion.thrust*6622;
 
 accum = 0.0;
-target_theta = [0.0;0.1;0.0];
+target_theta = [0;0;0];
 
 pitch_interval = 0;
 pause(5);
@@ -117,7 +113,7 @@ for t = 1:N,
     if t < pitch_interval
         chosen_target = target_theta;
     else
-        chosen_target = [0;0.1;0];
+        chosen_target = target_theta %[0;0.1;0];
     end
     
     [thrust_adj, attitude_state] = pid_controller(attitude_state, motion, chosen_target);

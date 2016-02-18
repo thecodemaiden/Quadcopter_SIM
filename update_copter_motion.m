@@ -2,7 +2,7 @@ function [ new_motion ] = update_copter_motion( copter, motion )
 
 new_motion = motion;
 theta = motion.theta;
-i = motion.thrust; % should be adjusted for the copters hover point
+i = motion.thrust;
 x = motion.pos;
 dt = motion.dt;
 
@@ -23,7 +23,6 @@ dt = motion.dt;
    new_motion.angacc = omegadot';
    new_motion.theta = theta;
    new_motion.thetadot = thetadot;
-
 end
 
 function T = thrust(inputs, k)
