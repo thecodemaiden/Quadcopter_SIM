@@ -11,7 +11,7 @@ if nargin < 3
 end
 
 if draw
-    step_time=0.05;
+    step_time=0.1;
 else
     step_time = 0.5;
 end
@@ -77,13 +77,13 @@ attitude_state.g = motion.g;
 attitude_state.dt = dt;
 attitude_state.Kp = 0; attitude_state.Ki = 5.0; attitude_state.Kd=10.0;
 
-motion.thrust = motion.thrust*6622;
+motion.thrust = motion.thrust*6618;
 
 accum = 0.0;
-target_theta = [0;0;0];
+target_theta = [pi;pi/12;pi];
 
 pitch_interval = 0;
-pause(5);
+%pause(5);
 
 for t = 1:N,
     % Take input from our controller.
@@ -113,7 +113,7 @@ for t = 1:N,
     if t < pitch_interval
         chosen_target = target_theta;
     else
-        chosen_target = target_theta %[0;0.1;0];
+        chosen_target = target_theta; %[0;0.1;0];
     end
     
     [thrust_adj, attitude_state] = pid_controller(attitude_state, motion, chosen_target);
@@ -122,7 +122,7 @@ for t = 1:N,
     %disp(['Force: ', num2str(f_coll')]);
     motion.forces = f_coll;
     pause(0.01);
-    motion.thrust = thrust_adj;
+   % motion.thrust = thrust_adj;
     if ~keepLooping
         break
     end

@@ -24,15 +24,15 @@ function Mr = rotation(theta)
 Mr = zeros(3);
 r = theta(1); p = theta(2); y = theta(3);
 Mr(1,1) = cos(r)*cos(y)-cos(p)*sin(r)*sin(y);
-Mr(1,2) = -cos(p)*sin(r)-cos(r)*cos(p)*sin(y);
-Mr(1,3) = sin(p)*sin(y);
+Mr(1,2) = -cos(r)*sin(y)-cos(y)*cos(p)*sin(r);
+Mr(1,3) = sin(r)*sin(p);
 
-Mr(2,1) = cos(p)*cos(y)*sin(r) + cos(r)*sin(y);
+Mr(2,1) = cos(r)*cos(p)*sin(y) + cos(y)*sin(r);
 Mr(2,2) = cos(r)*cos(p)*cos(y) - sin(r)*sin(y);
-Mr(2,3) = -cos(y)*sin(p);
+Mr(2,3) = -cos(r)*sin(p);
 
-Mr(3,1) = sin(r)*sin(p);
-Mr(3,2) = cos(r)*sin(p);
+Mr(3,1) = sin(y)*sin(p);
+Mr(3,2) = cos(y)*sin(p);
 Mr(3,3) = cos(p);
 end
 
