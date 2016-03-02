@@ -6,10 +6,10 @@ vel = motion.xdot;
 pos = motion.pos;
 L = copter.L;
 m = copter.m;
-thickness = copter.zr;
+thickness = copter.zL;
 faces = space.faces;
 
-bbox = [copter.L copter.L copter.zr];
+bbox = [L L thickness];
 
 forces = [0;0;0];
 % are we colliding with part of the space?

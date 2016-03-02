@@ -1,12 +1,15 @@
-function [data] = sim_copter(copter, motion, N, draw)
-
-dt = motion.dt;
-
+function copterlist = sim_copter(copterlist, N, dt, draw)
+% copterlist should be a row vector containing copters created by 
+% make_copter
 if nargin < 4
     draw = true;
 end
 
 if nargin < 3
+    dt = 0.05;
+end
+
+if nargin < 2
     N = 300;
 end
 
@@ -19,13 +22,31 @@ end
 
 times = (1:N)*dt;
 
-% save simulation values
-data = struct;
-data.t = times';
-data.x = zeros(N, 3);
-data.angacc = zeros(N, 3);
-data.theta = zeros(N,3);
-data.v = zeros(N,3);
+initlist = [];
+% change/set the dt value in each copter
+for i = 1:length(copterlist)
+    c = copterlist(i);
+    
+    c.motion.dt = dt;
+    c.data.t = times';
+    % log variables
+    c.data.x = zeros(N, 3);
+    c.data.angacc = zeros(N, 3);
+    c.data.theta = zeros(N,3);
+    c.data.v = zeros(N,3);
+    
+    %pid stuff
+    c.pid_state = c.physical;
+    c.pid_state.Kp = 10.0; c.pid_state.Ki = 0.0; c.pid_state.Kd=0.0;
+    %c.motion.thrust = c.motion.thrust*6618;    
+    if i==1
+        initlist = c;
+    else
+        initlist(i) = c;
+    end
+end
+
+copterlist = initlist;
 
 do3d = true;
 
@@ -36,8 +57,11 @@ if draw
     set(h,'KeyPressFcn',@stop_keypress);
     clf(h);
     if do3d
-        % Create the drawn quadcopter object. Returns a handle
-        drawing.model = make_quadcopter_3d;
+        hold on;
+        % Create the drawn quadcopter objects
+        for i = 1:length(copterlist)
+            copterlist(i).drawing.model = make_quadcopter_3d;
+        end
         
         plots = subplot(1,1,1);
         % Set axis scale and labels.
@@ -46,6 +70,8 @@ if draw
         zlabel('Height');
         xlabel('x');
         ylabel('y');
+        
+        draw_room_3d(test_room,h);
     else
         plots = [subplot(3,1,1) subplot(3,1,2), subplot(3,1,3)];
         subplot(plots(1));
@@ -57,6 +83,7 @@ if draw
     end
     title('Quadcopter Flight Simulation');
 else
+    % if we're not drawing, show a progress bar
     w = waitbar(0, 'Ready...');
 end
 
@@ -68,61 +95,35 @@ keepLooping = true;
         end
     end
 
-%r_params = [5.0, 3.0, 2.0];
-%p_params = r_params;
-%y_params = [10, 1, 0.35];
-%pid_params = vertcat(r_params, p_params, y_params);
-attitude_state = copter;
-attitude_state.g = motion.g;
-attitude_state.dt = dt;
-attitude_state.Kp = 0; attitude_state.Ki = 5.0; attitude_state.Kd=10.0;
-
-motion.thrust = motion.thrust*6618;
-
 accum = 0.0;
-target_theta = [pi;pi/12;pi];
 
-pitch_interval = 0;
 %pause(5);
 
 for t = 1:N,
-    % Take input from our controller.
-    
-    data.x(t, 1:3) = motion.pos';
-    data.angacc(t, 1:3) = motion.angacc';
-    data.theta(t, 1:3) = motion.theta';
-    data.v(t, 1:3) = motion.xdot';
+    need_redraw = false;
     if accum > step_time
         if draw
-            if do3d
-                hold off;
-                display_copter_3d(motion, drawing, plots);
-                hold on;
-                draw_room_3d(test_room,h);
-            else
-                display_copter_2d(motion, plots);
-            end
+            need_redraw = true;
         else
             waitbar(t/N, w, 'Simulating...');
         end
-            accum = accum - step_time;
-        end
+        accum = accum - step_time;
+    end
     accum = accum + dt;
     
-    motion = update_copter_motion(copter, motion);
-    if t < pitch_interval
-        chosen_target = target_theta;
-    else
-        chosen_target = target_theta; %[0;0.1;0];
+    for i = 1:length(copterlist)
+        c = handle_copter(t, copterlist(i), test_room);
+        if need_redraw
+            if do3d
+                display_copter_3d(c,plots);
+            else
+                display_copter_2d(c,plots);
+            end
+        end
+        copterlist(i) = c;
     end
     
-    [thrust_adj, attitude_state] = pid_controller(attitude_state, motion, chosen_target);
- 
-    f_coll = handle_collisions(copter, motion, test_room);
-    %disp(['Force: ', num2str(f_coll')]);
-    motion.forces = f_coll;
     pause(0.01);
-   % motion.thrust = thrust_adj;
     if ~keepLooping
         break
     end
@@ -132,38 +133,31 @@ if ~draw
 end
 end
 
-%pid_r = make_pid(3.5*t_mult, 2.0*t_mult, 0.0, 0, 20.0*t_mult);
-%pid_p = make_pid(3.5*t_mult, 2.0*t_mult, 0.0, 0, 20.0*t_mult);
-%pid_y = make_pid(10.0*t_mult, 1.0*t_mult, 0.35*t_mult, 0, 360*t_mult);
-function [r] = make_pid(kp, ki, kd, target, limit)
-r.kp = kp;
-r.ki = ki;
-r.kd = kd;
-r.lim = abs(limit);
-r.target = target;
-r.current = 0;
-r.error = 0;
-r.integ = 0;
-r.deriv = 0;
-r.prev_error = 0;
-r.output = 0;
-end
+function [updated] = handle_copter(t, copter, room)
 
-function new_p = update_pid(p, dt)
-p.error = p.target - p.current;
-%p.error = p.current - p.target;
-p.integ = p.integ + p.error*dt;
-if (p.integ > p.lim)
-    p.integ = p.lim;
-elseif (p.integ < -p.lim)
-    p.integ = -p.lim;
-end
+    updated = copter;
+ % Take input from our controller.
+    motion = copter.motion;
+    data = copter.data;
+    physical = copter.physical;
+    pid_state = copter.pid_state;
+    
+    data.x(t, 1:3) = motion.pos';
+    data.angacc(t, 1:3) = motion.angacc';
+    data.theta(t, 1:3) = motion.theta';
+    data.v(t, 1:3) = motion.xdot';
+    
+    motion = update_copter_motion(physical, motion);
+    
+    [thrust_adj, pid_state] = pid_controller(pid_state, motion, copter.motion.target_theta);
+    motion.thrust = thrust_adj;
+    
+    f_coll = handle_collisions(physical, motion, room);
+    motion.forces = f_coll;
 
-p.deriv = (p.error - p.prev_error)/dt;
-
-p.output = p.error*p.kp + p.integ*p.ki + p.deriv*p.kd;
-
-p.prev_error = p.error;
-new_p = p;
+    updated.motion = motion;
+    updated.physical = physical;
+    updated.pid_state = pid_state;
+    updated.data = data;
 end
 

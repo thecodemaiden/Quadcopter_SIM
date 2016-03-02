@@ -1,4 +1,4 @@
-function [ new_motion ] = update_copter_motion( copter, motion )
+function [ new_motion ] = update_copter_motion(physical, motion )
 
 new_motion = motion;
 theta = motion.theta;
@@ -8,11 +8,11 @@ dt = motion.dt;
 
 omega = thetadot2omega(motion.thetadot, theta);
 % Compute linear and angular accelerations.
-a = acceleration(i, theta, motion.xdot, copter.m, motion.g, copter.k, copter.kd);
+a = acceleration(i, theta, motion.xdot, physical.m, motion.g, physical.k, physical.kd);
 %f = ma
-a = a + motion.forces/copter.m;
+a = a + motion.forces/physical.m;
    
-omegadot = angular_acceleration(i, omega, copter.I, copter.L, copter.b, copter.k);
+omegadot = angular_acceleration(i, omega, physical.I, physical.L, physical.b, physical.k);
 omega = omega + dt * omegadot;
 thetadot = omega2thetadot(omega, theta); 
 theta = theta + dt * thetadot; 

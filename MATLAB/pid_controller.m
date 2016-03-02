@@ -3,6 +3,7 @@ function [input, state] = pid_controller(state, motion, target_theta)
     %Kp = params(:,1); Ki = params(:,2); Kd = params(:,3);
     Kp = state.Kp; Ki = state.Ki; Kd = state.Kd;
     theta = motion.theta;
+    dt = motion.dt;
     thetadot = motion.thetadot;
     if ~isfield(state, 'integral')
         state.lasterror = zeros(3, 1);
@@ -15,19 +16,19 @@ function [input, state] = pid_controller(state, motion, target_theta)
     end
 
     % Compute total thrust.
-    total = state.m * state.g / state.k / ... 
+    total = state.m * motion.g / state.k / ... 
           (cos(theta(1)) * cos(theta(2)));
 
     % this will be PI-D controller
       
     now_error = theta-target_theta;
-    d_error = (-state.lasterror + now_error)/state.dt;
+    d_error = (-state.lasterror + now_error)/dt;
     % Compute error and inputs.
-    err = Kd .* d_error + Kp .* theta + Ki .* state.integral;
+    err = Kd .* d_error + Kp .* now_error + Ki .* state.integral;
     input = err2inputs(state, err, total);
 
     % Update controller state.
-    state.integral = state.integral + state.dt .* now_error;
+    state.integral = state.integral + dt .* now_error;
     state.lasterror = now_error;
 
 end

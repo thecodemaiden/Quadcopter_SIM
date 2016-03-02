@@ -1,9 +1,6 @@
 function [h] = make_quadcopter_3d
 
-% Draw a quadcopter. Return a handle to the quadcopter object
-% and an array of handles to the thrust display cylinders. 
-% These will be transformed during the animation to display
-% relative thrust forces.
+% Draw a quadcopter. Return a handle to the quadcopter object.
     % Draw arms.
     L = 1;
     h(1) = prism(0, 0, 0, L, 0.1, 0.1);
